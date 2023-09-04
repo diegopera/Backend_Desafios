@@ -76,17 +76,15 @@ class ProductManager {
         };
     };
 
-    async updateProduct(idProd, prodUpdate) {
+    async updateProduct(idProd, field, value) {
+        if(field === 'id'){
+            return 'No se puede modificar el ID'
+        }; 
         try {
             const products = await this.getProducts();
             const indexUpdate = products.findIndex(item => item.id === idProd);
             if (indexUpdate != -1) {
-                products[indexUpdate].title = prodUpdate.title;
-                products[indexUpdate].description = prodUpdate.description;
-                products[indexUpdate].price = prodUpdate.price;
-                products[indexUpdate].thumbnail = prodUpdate.thumbnail;
-                products[indexUpdate].code = prodUpdate.code;
-                products[indexUpdate].stock = prodUpdate.stock;
+                products[indexUpdate][field] = value;
                 await fs.promises.writeFile(this.path, JSON.stringify(products));
                 return 'Producto modificado correctamente'
             } else {
@@ -102,16 +100,6 @@ class ProductManager {
 
 async function tests() {
     const products = new ProductManager('products.json');
-
-    const prodUpdate = {
-        title: 'Producto Modificado',
-        description: 'Descripcion Modificada',
-        price: 123456,
-        thumbnail: 'Imagen Modificada',
-        code: 'xyz321',
-        stock: 123456
-    }
-
     let response = await products.getProducts();
     console.log(response);
 
@@ -132,7 +120,7 @@ async function tests() {
     response = await products.updateProduct(1, 'id', 4)
     console.log(response);
     
-    response = await products.updateProduct(1, prodUpdate);
+    response = await products.updateProduct(1, 'title', 'Titulo Modificado');
     console.log(response);
 
     response = await products.getProducts();
