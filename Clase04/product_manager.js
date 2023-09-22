@@ -6,37 +6,32 @@ class ProductManager {
         this.path = path
     };
 
-    async addProducts(title, description, price, thumbnail, code, stock) {
+    async addProducts(obj) {
+        const {code} = obj
         try {
-            const products = await this.getProducts();
-            const prodExist = products.find(item => item.code === code);
+            const products = await this.getProducts({});
+            console.log(products)
+            let id = products.length === 0 ? 1 : products[products.length - 1].id + 1;
+            let prodExist = products.find(item => item.code === code);
             if (prodExist) {
-                return "El codigo del producto ya existe";
+                return "Product Code Already Exists";
             }
-            const product = {
-                id: products.length === 0 ? 1 : products[products.length-1].id + 1,
-                title,
-                description,
-                price,
-                thumbnail,
-                code,
-                stock
-            };
+            const product = { id, ...obj }
             products.push(product);
             await fs.promises.writeFile(this.path, JSON.stringify(products));
-            return 'Producto agregado correctamente';
+            return product;
         } catch (error) {
             return error
         }
     };
 
     async getProducts(query) {
-        const {limit} = query
+        const { limit } = query
         try {
             if (fs.existsSync(this.path)) {
                 const productsFile = await fs.promises.readFile(this.path, 'utf-8');
                 const productsArray = JSON.parse(productsFile);
-                return limit ? productsArray.slice(0,limit) : productsArray
+                return limit ? productsArray.slice(0, limit) : productsArray
             } else {
                 return [];
             };
@@ -44,7 +39,6 @@ class ProductManager {
             return error
         };
     };
-
 
     async getProductByID(idProd) {
         try {
@@ -62,35 +56,33 @@ class ProductManager {
 
     async deleteProduct(idProd) {
         try {
-            const products = await this.getProducts();
+            const products = await this.getProducts({});
             let confirm = products.find(item => item.id === idProd);
-            if(!confirm){
-                return 'el ID es inexistente';
+            if (!confirm) {
+                return -1;
             }
             const newProducts = products.filter(item => item.id !== idProd);
             await fs.promises.writeFile(this.path, JSON.stringify(newProducts))
             confirm = products.find(item => item.id === idProd);
-            if(confirm){
-                return `El producto con el ID: ${idProd} fue borrado correctamente`;
+            if (confirm) {
+                return 1;
             }
         } catch (error) {
             return error;
         };
     };
 
-    async updateProduct(idProd, field, value) {
-        if(field === 'id'){
-            return 'No se puede modificar el ID'
-        }; 
+    async updateProduct(idProd, obj) {
         try {
-            const products = await this.getProducts();
+            const products = await this.getProducts({});
             const indexUpdate = products.findIndex(item => item.id === idProd);
             if (indexUpdate != -1) {
-                products[indexUpdate][field] = value;
+                const newProd = products[indexUpdate];
+                products[indexUpdate] = {...newProd, ...obj};
                 await fs.promises.writeFile(this.path, JSON.stringify(products));
-                return 'Producto modificado correctamente'
+                return 1;
             } else {
-                return "No se encontro el producto";
+                return -1;
             };
         } catch (error) {
             return error;

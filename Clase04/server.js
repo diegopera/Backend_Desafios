@@ -2,30 +2,67 @@ import express from 'express'
 import { productsManager } from './product_manager.js';
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/products', async (req, res) => {
     try {
         const products = await productsManager.getProducts(req.query);
         if (!products.length) {
-            return res.status(200).json({message: 'No Products Found'});
+            return res.status(200).json({ message: 'No Products Found' });
         }
-        res.status(200).json({message: 'Query Successful: ', products});
+        res.status(200).json({ message: 'Query Successful: ', products });
     } catch (error) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
 })
 
 app.get('/products/:idProd', async (req, res) => {
-const {idProd} = req.params;
-try {
-    const product = await productsManager.getProductByID(+idProd);
-    if(!product){
-        return res.status(400).json({message: `Product with id: ${idProd} not found`});
+    const { idProd } = req.params;
+    try {
+        const product = await productsManager.getProductByID(+idProd);
+        if (!product) {
+            return res.status(400).json({ message: `Product with id: ${idProd} not found` });
+        }
+        res.status(200).json({ message: 'Query Successful:', product });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-    res.status(200).json({message: 'Query Successful:', product});
-} catch (error) {
-    res.status(500).json({message: error.message});
-}
+})
+
+app.post('/products', async (req, res) => {
+    try {
+        const newProduct = await productsManager.addProducts(req.body);
+        res.status(200).json({ message: 'Product Created', newProduct })
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+})
+
+app.delete('/products/:idProd', async (req, res) => {
+    const { idProd } = req.params;
+    try {
+        const product = await productsManager.deleteProduct(+idProd);
+        if (product === -1) {
+            return res.status(400).json({ message: `Product with id: ${idProd} not found` });
+        }
+        res.status(200).json({ message: 'Product Deleted' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+})
+
+app.put('/products/:idProd', async (req, res) => {
+    const { idProd } = req.params;
+    try {
+        const product = await productsManager.updateProduct(+idProd, req.body);
+        if (product === -1) {
+            return res.status(400).json({ message: `Product with id: ${idProd} not found` });
+        }
+        res.status(200).json({ message: 'Product Modified' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 })
 
 app.listen(8080, () => {
