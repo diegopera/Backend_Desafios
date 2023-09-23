@@ -1,11 +1,10 @@
-import express from 'express'
-import { productsManager } from './product_manager.js';
+import {Router} from 'express'
+import { productsManager } from '../product_manager.js';
+import { upload } from '../middleware/multer.middleware.js';
 
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const router = Router();
 
-app.get('/products', async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const products = await productsManager.getProducts(req.query);
         if (!products.length) {
@@ -17,7 +16,7 @@ app.get('/products', async (req, res) => {
     }
 })
 
-app.get('/products/:idProd', async (req, res) => {
+router.get('/:idProd', async (req, res) => {
     const { idProd } = req.params;
     try {
         const product = await productsManager.getProductByID(+idProd);
@@ -30,16 +29,17 @@ app.get('/products/:idProd', async (req, res) => {
     }
 })
 
-app.post('/products', async (req, res) => {
-    try {
-        const newProduct = await productsManager.addProducts(req.body);
-        res.status(200).json({ message: 'Product Created', newProduct })
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+router.post('/', upload.single('product-image'), async (req, res) => {
+    // try {
+    //     const newProduct = await productsManager.addProducts(req.body);
+    //     res.status(200).json({ message: 'Product Created', newProduct })
+    // } catch (error) {
+    //     res.status(500).json({ message: error.message });
+    // }
+    res.send('probando multer')
 })
 
-app.delete('/products/:idProd', async (req, res) => {
+router.delete('/:idProd', async (req, res) => {
     const { idProd } = req.params;
     try {
         const product = await productsManager.deleteProduct(+idProd);
@@ -52,7 +52,7 @@ app.delete('/products/:idProd', async (req, res) => {
     }
 })
 
-app.put('/products/:idProd', async (req, res) => {
+router.put('/:idProd', async (req, res) => {
     const { idProd } = req.params;
     try {
         const product = await productsManager.updateProduct(+idProd, req.body);
@@ -65,6 +65,4 @@ app.put('/products/:idProd', async (req, res) => {
     }
 })
 
-app.listen(8080, () => {
-    console.log('nodemon en 8080');
-})
+export default router
