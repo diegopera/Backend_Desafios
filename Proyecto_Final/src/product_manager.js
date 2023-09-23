@@ -10,13 +10,13 @@ class ProductManager {
         const {code} = obj
         try {
             const products = await this.getProducts({});
-            console.log(products)
+            let status = true;
             let id = products.length === 0 ? 1 : products[products.length - 1].id + 1;
             let prodExist = products.find(item => item.code === code);
             if (prodExist) {
                 return "Product Code Already Exists";
             }
-            const product = { id, ...obj }
+            const product = { id, status, ...obj }
             products.push(product);
             await fs.promises.writeFile(this.path, JSON.stringify(products));
             return product;
